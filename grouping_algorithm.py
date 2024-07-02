@@ -12,12 +12,77 @@ class Grouping_Algorithm:
             return False
         sheet = workbook.active
         return sheet
-    def sortPeople(sheet):
+    def putInEvent(self, people, sheet):
+        pass
+    def sortSeniors(self, sheet):
+        dictionary = {}
         counter = 2
-        key = "C" + str(counter)
+        key = "D" + str(counter)
         doneSorting = False
         while doneSorting == False:
-            pass
+            if sheet[key].value == "Sr":
+                nameKey = "A" + str(counter)
+                eventKey = "C" + str(counter)
+                name = sheet[nameKey].value
+                events = sheet[eventKey].value
+                dictionary[name] = events
+            if sheet[key].value == None:
+                doneSorting = True
+            counter = counter + 1
+            key = "D" + str(counter)
+        return dictionary
+    def sortJuniors(self, sheet):
+        dictionary = {}
+        counter = 2
+        key = "D" + str(counter)
+        doneSorting = False
+        while doneSorting == False:
+            if sheet[key].value == "J":
+                nameKey = "A" + str(counter)
+                eventKey = "C" + str(counter)
+                name = sheet[nameKey].value
+                events = sheet[eventKey].value
+                dictionary[name] = events
+            if sheet[key].value == None:
+                doneSorting = True
+            counter = counter + 1
+            key = "D" + str(counter)
+        return dictionary
+    def sortSophomores(self, sheet):
+        dictionary = {}
+        counter = 2
+        key = "D" + str(counter)
+        doneSorting = False
+        while doneSorting == False:
+            if sheet[key].value == "S":
+                nameKey = "A" + str(counter)
+                eventKey = "C" + str(counter)
+                name = sheet[nameKey].value
+                events = sheet[eventKey].value
+                dictionary[name] = events
+            if sheet[key].value == None:
+                doneSorting = True
+            counter = counter + 1
+            key = "D" + str(counter)
+        return dictionary
+    def sortFreshman(self, sheet):
+        dictionary = {}
+        counter = 2
+        key = "D" + str(counter)
+        doneSorting = False
+        while doneSorting == False:
+            if sheet[key].value == "F":
+                nameKey = "A" + str(counter)
+                eventKey = "C" + str(counter)
+                name = sheet[nameKey].value
+                events = sheet[eventKey].value
+                dictionary[name] = events
+            if sheet[key].value == None:
+                doneSorting = True
+            counter = counter + 1
+            key = "D" + str(counter)
+        return dictionary
+            
 
 
 def getFileName():
@@ -29,8 +94,11 @@ filename = getFileName()
 algorithm = Grouping_Algorithm()
 sheet = algorithm.getWorkbook(filename)
 if sheet:
-    print(sheet["A1"].value)
-    algorithm.sortPeople()
+    seniors = algorithm.sortSeniors(sheet=sheet)
+    juniors = algorithm.sortJuniors(sheet=sheet)
+    sophomores = algorithm.sortSophomores(sheet=sheet)
+    freshmen = algorithm.sortFreshman(sheet=sheet)
+    
     
 #workbook = load_workbook(filename="team_data/Scioly test data.xlsx")
 
