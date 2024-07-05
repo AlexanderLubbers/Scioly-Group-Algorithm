@@ -23,6 +23,20 @@ event20 = {}
 event21 = {}
 event22 = {}
 event23 = {}
+def getMaxGroupSize(sheet, eventName):
+    counter = 2
+    key = "F" + str(counter)
+    while True:
+        if eventName == sheet[key].value:
+            break
+        counter+=1
+        key = "F" + str(counter)
+    key = "J" + str(counter)
+    maxGroupSize = sheet[key].value
+    maxGroupSize = int(maxGroupSize)
+    return maxGroupSize
+def getPreferredTeamates():
+    pass  
 class Grouping_Algorithm:
     def getWorkbook(self, filename):
         file = "team_data/" + filename + ".xlsx"
@@ -44,8 +58,22 @@ class Grouping_Algorithm:
             nameKey = "A" + str(nameCounter)
         num = nameCounter - 3
         return math.ceil(num / 15)
-    def putInTeams(self):
-        pass
+    def putInTeams(self, sheet, eventList, numTeams):
+        teams = {}
+        for t in eventList:
+            participants = []
+            teamsCreated = 0
+            eventName = ""
+            counter = 0
+            for i in t.values():
+                if counter == 0:
+                    eventName = i
+                participants.append(i)
+                counter+=1
+            counter = 0 #maybe remove
+            maxGroupSize = getMaxGroupSize(sheet, eventName)
+            for p in participants:
+                pass
     def putInEvent(self, people, eventLookup):
         for key in people:
             events = people[key]
@@ -123,7 +151,8 @@ class Grouping_Algorithm:
             counter = counter + 1
             key = "D" + str(counter)
         return dictionary
-
+    def updateGoogleSheet(sheet, teams):
+        pass
 def getFileName():
     print("enter in the name of the .xlsx file that you want to generate groups and teams for")
     userInput = input(".xlsx file with team data: ")
@@ -171,4 +200,6 @@ if sheet:
     numTeams = algorithm.getNumOfTeams(sheet)
     print(numTeams)
     print(eventList)
+    #algorithm.putInTeams(sheet, eventList, numTeams)
+    
 
