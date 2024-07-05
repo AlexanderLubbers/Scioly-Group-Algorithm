@@ -1,4 +1,5 @@
 from openpyxl import load_workbook
+import math
 event1 = {}
 event2 = {}
 event3 = {}
@@ -32,8 +33,17 @@ class Grouping_Algorithm:
             return False
         sheet = workbook.active
         return sheet
-    def getNumOfTeams(self):
-       pass
+    def getNumOfTeams(self, sheet):
+        nameCounter = 1
+        nameKey = "A" + str(nameCounter)
+        doneCounting = False
+        while doneCounting == False:
+            if sheet[nameKey].value == None:
+               doneCounting = True
+            nameCounter = nameCounter + 1
+            nameKey = "A" + str(nameCounter)
+        num = nameCounter - 3
+        return math.ceil(num / 15)
     def putInTeams(self):
         pass
     def putInEvent(self, people, eventLookup):
@@ -45,7 +55,6 @@ class Grouping_Algorithm:
                 for i in eventLookup:
                     if t == i.get("Event name"):
                         i["person" + str(len(i))] = key
-        return eventLookup
     def sortSeniors(self, sheet):
         dictionary = {}
         counter = 2
@@ -155,5 +164,11 @@ if sheet:
     freshmen = algorithm.sortFreshman(sheet=sheet)
     event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12, event13, event14, event15, event16, event17, event18, event19, event20, event21, event22, event23 = setupEventList(sheet)
     eventList = [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12, event13, event14, event15, event16, event17, event18, event19, event20, event21, event22, event23]
-    eventList = algorithm.putInEvent(seniors, eventList)
+    algorithm.putInEvent(seniors, eventList)
+    algorithm.putInEvent(juniors, eventList)
+    algorithm.putInEvent(sophomores, eventList)
+    algorithm.putInEvent(freshmen, eventList)
+    numTeams = algorithm.getNumOfTeams(sheet)
+    print(numTeams)
+    print(eventList)
 
