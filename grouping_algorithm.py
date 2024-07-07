@@ -35,8 +35,31 @@ def getMaxGroupSize(sheet, eventName):
     maxGroupSize = sheet[key].value
     maxGroupSize = int(maxGroupSize)
     return maxGroupSize
-def getPreferredTeamates():
-    pass  
+def getPreferredTeamates(sheet, name):
+    counter = 2
+    key = "A" + str(counter)
+    while True:
+        if name == sheet[key].value:
+            break
+        counter+=1
+        key = "A" + str(counter)
+    key = "B" + str(counter)
+    string = sheet[key].value
+    preferredTeamates = string.split(",")
+    preferredTeamates = [preferredTeamates.strip() for preferredTeamates in preferredTeamates]
+    return preferredTeamates
+def addToTeamDict(team, teams, eventName):
+    if eventName in teams:
+        iterate = True
+        counter = 1
+        while iterate == True:
+            if (eventName + str(counter)) not in teams:
+                iterate = False
+                teams[eventName+str(counter)] = team
+            counter+=1
+    else:
+        teams[eventName] = team
+    return teams
 class Grouping_Algorithm:
     def getWorkbook(self, filename):
         file = "team_data/" + filename + ".xlsx"
@@ -58,8 +81,10 @@ class Grouping_Algorithm:
             nameKey = "A" + str(nameCounter)
         num = nameCounter - 3
         return math.ceil(num / 15)
+    #handle people who do not get put into an event
     def putInTeams(self, sheet, eventList, numTeams):
         teams = {}
+        leftovers = []
         for t in eventList:
             participants = []
             teamsCreated = 0
@@ -68,12 +93,46 @@ class Grouping_Algorithm:
             for i in t.values():
                 if counter == 0:
                     eventName = i
-                participants.append(i)
+                else:
+                    participants.append(i)
                 counter+=1
-            counter = 0 #maybe remove
+            counter = 0
             maxGroupSize = getMaxGroupSize(sheet, eventName)
-            for p in participants:
-                pass
+            #handle edge case
+            team = []
+            if(len(participants) == 0):
+                teams[eventName] = team
+                return
+            team.append(participants[0])
+            name = participants[0]
+            participants.remove(participants[0])
+            preferredTeamates = getPreferredTeamates(sheet, name)
+            for i in preferredTeamates:
+                if len(participants) == 0 or numTeams == teamsCreated:
+                    break
+                for p in participants:
+                    if i == p:
+                        team.append(p)
+                        participants.remove(p)
+                        if len(team) == maxGroupSize:
+                            teamsCreated+=1
+                            teams = addToTeamDict(team, teams, eventName)
+                #no one in the preferred teamate list was participating in the event so
+                #the next person in the participant list should be added as long as they exist
+                #and should be added to create a team
+                if len(participants) != 0 and numTeams != teamsCreated:
+                    team.append(participants[0])
+                    participants.remove(participants[0])
+                    if team.lenth == maxGroupSize:
+                        teamsCreated+=1
+                        teams = addToTeamDict(team, teams, eventName)
+            if numTeams != teamsCreated:
+                teams = addToTeamDict(team, teams, eventName)
+            if len(participants) > 0:
+                for people in participants:
+                    leftovers.append(people)
+        return teams, leftovers
+                            
     def putInEvent(self, people, eventLookup):
         for key in people:
             events = people[key]
@@ -198,8 +257,9 @@ if sheet:
     algorithm.putInEvent(sophomores, eventList)
     algorithm.putInEvent(freshmen, eventList)
     numTeams = algorithm.getNumOfTeams(sheet)
-    print(numTeams)
     print(eventList)
-    #algorithm.putInTeams(sheet, eventList, numTeams)
+    teams, leftovers = algorithm.putInTeams(sheet, [{'Event name': 'Anatomy and Physiology', 'person1': 'hal', 'person2': 'John Johnson'}], numTeams)
+    print(teams)
+    print(leftovers)
     
 
