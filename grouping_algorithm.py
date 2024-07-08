@@ -101,36 +101,36 @@ class Grouping_Algorithm:
             #handle edge case
             team = []
             if(len(participants) == 0):
-                teams[eventName] = team
-                return
-            team.append(participants[0])
-            name = participants[0]
-            participants.remove(participants[0])
-            preferredTeamates = getPreferredTeamates(sheet, name)
-            for i in preferredTeamates:
-                if len(participants) == 0 or numTeams == teamsCreated:
-                    break
-                for p in participants:
-                    if i == p:
-                        team.append(p)
-                        participants.remove(p)
+                teams = addToTeamDict(team, teams, eventName)
+            else:
+                team.append(participants[0])
+                name = participants[0]
+                participants.remove(participants[0])
+                preferredTeamates = getPreferredTeamates(sheet, name)
+                for i in preferredTeamates:
+                    if len(participants) == 0 or numTeams == teamsCreated:
+                        break
+                    for p in participants:
+                        if i == p:
+                            team.append(p)
+                            participants.remove(p)
+                            if len(team) == maxGroupSize:
+                                teamsCreated+=1
+                                teams = addToTeamDict(team, teams, eventName)
+                    #no one in the preferred teamate list was participating in the event so
+                    #the next person in the participant list should be added as long as they exist
+                    #and should be added to create a team
+                    if len(participants) != 0 and numTeams != teamsCreated:
+                        team.append(participants[0])
+                        participants.remove(participants[0])
                         if len(team) == maxGroupSize:
                             teamsCreated+=1
                             teams = addToTeamDict(team, teams, eventName)
-                #no one in the preferred teamate list was participating in the event so
-                #the next person in the participant list should be added as long as they exist
-                #and should be added to create a team
-                if len(participants) != 0 and numTeams != teamsCreated:
-                    team.append(participants[0])
-                    participants.remove(participants[0])
-                    if team.lenth == maxGroupSize:
-                        teamsCreated+=1
-                        teams = addToTeamDict(team, teams, eventName)
-            if numTeams != teamsCreated:
-                teams = addToTeamDict(team, teams, eventName)
-            if len(participants) > 0:
-                for people in participants:
-                    leftovers.append(people)
+                if numTeams != teamsCreated:
+                    teams = addToTeamDict(team, teams, eventName)
+                if len(participants) > 0:
+                    for people in participants:
+                        leftovers.append(people)
         return teams, leftovers
                             
     def putInEvent(self, people, eventLookup):
@@ -210,7 +210,11 @@ class Grouping_Algorithm:
             counter = counter + 1
             key = "D" + str(counter)
         return dictionary
-    def updateGoogleSheet(sheet, teams):
+    def updateGoogleSheet(self, sheet, teams):
+        pass
+    def handleLeftOvers(teams, leftovers):
+        pass
+    def separatetTeams(teams, leftovers):
         pass
 def getFileName():
     print("enter in the name of the .xlsx file that you want to generate groups and teams for")
@@ -257,9 +261,7 @@ if sheet:
     algorithm.putInEvent(sophomores, eventList)
     algorithm.putInEvent(freshmen, eventList)
     numTeams = algorithm.getNumOfTeams(sheet)
-    print(eventList)
-    teams, leftovers = algorithm.putInTeams(sheet, [{'Event name': 'Anatomy and Physiology', 'person1': 'hal', 'person2': 'John Johnson'}], numTeams)
+    teams, leftovers = algorithm.putInTeams(sheet, eventList, numTeams)
     print(teams)
     print(leftovers)
-    
-
+    algorithm.separateTeams(teams, leftovers)
