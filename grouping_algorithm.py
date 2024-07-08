@@ -23,44 +23,81 @@ event20 = {}
 event21 = {}
 event22 = {}
 event23 = {}
-def getMaxGroupSize(sheet, eventName):
-    counter = 2
-    key = "F" + str(counter)
-    while True:
-        if eventName == sheet[key].value:
-            break
-        counter+=1
-        key = "F" + str(counter)
-    key = "J" + str(counter)
-    maxGroupSize = sheet[key].value
-    maxGroupSize = int(maxGroupSize)
-    return maxGroupSize
-def getPreferredTeamates(sheet, name):
-    counter = 2
-    key = "A" + str(counter)
-    while True:
-        if name == sheet[key].value:
-            break
-        counter+=1
-        key = "A" + str(counter)
-    key = "B" + str(counter)
-    string = sheet[key].value
-    preferredTeamates = string.split(",")
-    preferredTeamates = [preferredTeamates.strip() for preferredTeamates in preferredTeamates]
-    return preferredTeamates
-def addToTeamDict(team, teams, eventName):
-    if eventName in teams:
-        iterate = True
-        counter = 1
-        while iterate == True:
-            if (eventName + str(counter)) not in teams:
-                iterate = False
-                teams[eventName+str(counter)] = team
-            counter+=1
-    else:
-        teams[eventName] = team
-    return teams
+# def getMaxGroupSize(sheet, eventName):
+#     counter = 2
+#     key = "F" + str(counter)
+#     while True:
+#         if eventName == sheet[key].value:
+#             break
+#         counter+=1
+#         key = "F" + str(counter)
+#     key = "J" + str(counter)
+#     maxGroupSize = sheet[key].value
+#     maxGroupSize = int(maxGroupSize)
+#     return maxGroupSize
+# def getPreferredTeamates(sheet, name):
+#     counter = 2
+#     key = "A" + str(counter)
+#     while True:
+#         if name == sheet[key].value:
+#             break
+#         counter+=1
+#         key = "A" + str(counter)
+#     key = "B" + str(counter)
+#     string = sheet[key].value
+#     preferredTeamates = string.split(",")
+#     preferredTeamates = [preferredTeamates.strip() for preferredTeamates in preferredTeamates]
+#     return preferredTeamates
+# def addToTeamDict(team, teams, eventName):
+    # if eventName in teams:
+    #     iterate = True
+    #     counter = 1
+    #     while iterate == True:
+    #         if (eventName + str(counter)) not in teams:
+    #             iterate = False
+    #             teams[eventName+str(counter)] = team
+    #         counter+=1
+    # else:
+    #     teams[eventName] = team
+    # return teams
 class Grouping_Algorithm:
+    def getMaxGroupSize(self, sheet, eventName):
+        counter = 2
+        key = "F" + str(counter)
+        while True:
+            if eventName == sheet[key].value:
+                break
+            counter+=1
+            key = "F" + str(counter)
+        key = "J" + str(counter)
+        maxGroupSize = sheet[key].value
+        maxGroupSize = int(maxGroupSize)
+        return maxGroupSize
+    def getPreferredTeamates(self, sheet, name):
+        counter = 2
+        key = "A" + str(counter)
+        while True:
+            if name == sheet[key].value:
+                break
+            counter+=1
+            key = "A" + str(counter)
+        key = "B" + str(counter)
+        string = sheet[key].value
+        preferredTeamates = string.split(",")
+        preferredTeamates = [preferredTeamates.strip() for preferredTeamates in preferredTeamates]
+        return preferredTeamates
+    def addToTeamDict(self, team, teams, eventName):
+        if eventName in teams:
+            iterate = True
+            counter = 1
+            while iterate == True:
+                if (eventName + str(counter)) not in teams:
+                    iterate = False
+                    teams[eventName+str(counter)] = team
+                counter+=1
+        else:
+            teams[eventName] = team
+        return teams
     def getWorkbook(self, filename):
         file = "team_data/" + filename + ".xlsx"
         try:
@@ -97,16 +134,16 @@ class Grouping_Algorithm:
                     participants.append(i)
                 counter+=1
             counter = 0
-            maxGroupSize = getMaxGroupSize(sheet, eventName)
+            maxGroupSize = self.getMaxGroupSize(sheet, eventName)
             #handle edge case
             team = []
             if(len(participants) == 0):
-                teams = addToTeamDict(team, teams, eventName)
+                teams = self.addToTeamDict(team, teams, eventName)
             else:
                 team.append(participants[0])
                 name = participants[0]
                 participants.remove(participants[0])
-                preferredTeamates = getPreferredTeamates(sheet, name)
+                preferredTeamates = self.getPreferredTeamates(sheet, name)
                 for i in preferredTeamates:
                     if len(participants) == 0 or numTeams == teamsCreated:
                         break
@@ -116,7 +153,7 @@ class Grouping_Algorithm:
                             participants.remove(p)
                             if len(team) == maxGroupSize:
                                 teamsCreated+=1
-                                teams = addToTeamDict(team, teams, eventName)
+                                teams = self.addToTeamDict(team, teams, eventName)
                     #no one in the preferred teamate list was participating in the event so
                     #the next person in the participant list should be added as long as they exist
                     #and should be added to create a team
@@ -125,14 +162,13 @@ class Grouping_Algorithm:
                         participants.remove(participants[0])
                         if len(team) == maxGroupSize:
                             teamsCreated+=1
-                            teams = addToTeamDict(team, teams, eventName)
+                            teams = self.addToTeamDict(team, teams, eventName)
                 if numTeams != teamsCreated:
-                    teams = addToTeamDict(team, teams, eventName)
+                    teams = self.addToTeamDict(team, teams, eventName)
                 if len(participants) > 0:
                     for people in participants:
                         leftovers.append(people)
-        return teams, leftovers
-                            
+        return teams, leftovers                         
     def putInEvent(self, people, eventLookup):
         for key in people:
             events = people[key]
@@ -212,9 +248,9 @@ class Grouping_Algorithm:
         return dictionary
     def updateGoogleSheet(self, sheet, teams):
         pass
-    def handleLeftOvers(teams, leftovers):
+    def handleLeftOvers(self, teams, leftovers):
         pass
-    def separatetTeams(teams, leftovers):
+    def separateTeams(self, teams, leftovers):
         pass
 def getFileName():
     print("enter in the name of the .xlsx file that you want to generate groups and teams for")
