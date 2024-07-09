@@ -23,43 +23,7 @@ event20 = {}
 event21 = {}
 event22 = {}
 event23 = {}
-# def getMaxGroupSize(sheet, eventName):
-#     counter = 2
-#     key = "F" + str(counter)
-#     while True:
-#         if eventName == sheet[key].value:
-#             break
-#         counter+=1
-#         key = "F" + str(counter)
-#     key = "J" + str(counter)
-#     maxGroupSize = sheet[key].value
-#     maxGroupSize = int(maxGroupSize)
-#     return maxGroupSize
-# def getPreferredTeamates(sheet, name):
-#     counter = 2
-#     key = "A" + str(counter)
-#     while True:
-#         if name == sheet[key].value:
-#             break
-#         counter+=1
-#         key = "A" + str(counter)
-#     key = "B" + str(counter)
-#     string = sheet[key].value
-#     preferredTeamates = string.split(",")
-#     preferredTeamates = [preferredTeamates.strip() for preferredTeamates in preferredTeamates]
-#     return preferredTeamates
-# def addToTeamDict(team, teams, eventName):
-    # if eventName in teams:
-    #     iterate = True
-    #     counter = 1
-    #     while iterate == True:
-    #         if (eventName + str(counter)) not in teams:
-    #             iterate = False
-    #             teams[eventName+str(counter)] = team
-    #         counter+=1
-    # else:
-    #     teams[eventName] = team
-    # return teams
+
 class Grouping_Algorithm:
     def getMaxGroupSize(self, sheet, eventName):
         counter = 2
@@ -250,8 +214,120 @@ class Grouping_Algorithm:
         pass
     def handleLeftOvers(self, teams, leftovers):
         pass
-    def separateTeams(self, teams, leftovers):
-        pass
+    def separateTeams(self, teams, leftovers, sheet):
+        teamOne = []
+        teamTwo = []
+        teamThree = []
+        for team in teams:
+            if '2' in team:
+                dictionaryTwo = {team:teams[team]}
+                teamTwo.append(dictionaryTwo)
+            elif '3' in team:
+                dictionaryThree = {team:teams[team]}
+                teamThree.append(dictionaryThree)
+            else:
+                dictionary = {team:teams[team]}
+                teamOne.append(dictionary)
+            names = self.getAllParticipants(sheet)
+            nameCountOne = {}
+            nameCountTwo = {}
+            nameCountThree = {}
+            for i in names:
+                counter = 0
+                for t in teamOne:
+                    for g in t:
+                        for f in t[g]:
+                            if i == f:
+                                counter+=1
+                                nameCountOne[i] = counter
+                if counter == 0:
+                    nameCountOne[i] = 0
+                counter = 0
+                for t in teamTwo:
+                    for g in t:
+                        for f in t[g]:
+                            if i == f:
+                                counter+=1
+                                nameCountTwo[i] = counter
+                if counter == 0:
+                    nameCountTwo[i] = 0
+                counter = 0
+                for t in teamThree:
+                    for g in t:
+                        for f in t[g]:
+                            if i == f:
+                                counter+=1
+                                nameCountThree[i] = counter
+                if counter == 0:
+                    nameCountThree[i] = 0
+                counter = 0
+            teamAssignment = {}
+            for i in names:
+                x = nameCountOne[i]
+                y = nameCountTwo[i]
+                z = nameCountThree[i]
+                if max(x,y,z) == x:
+                    teamAssignment[i] = 1
+                if max(x,y,z) == y:
+                    teamAssignment[i] = 2
+                if max(x,y,z) == z:
+                    teamAssignment[i] = 3
+            for i in teamOne:
+                newTeam = []
+                index = teamOne.index(i)
+                for key in i.keys():
+                    eventName = key
+                for values in i.values():
+                    eventParticipants = values
+                for p in eventParticipants:
+                    if teamAssignment[p] == 1:
+                        newTeam.append(p)
+                    else:
+                        leftovers.append(p)
+                newDict = {}
+                newDict[eventName] = newTeam
+                teamOne[index] = newDict
+            for i in teamTwo:
+                newTeam = []
+                index = teamTwo.index(i)
+                for key in i.keys():
+                    eventName = key
+                for values in i.values():
+                    eventParticipants = values
+                for p in eventParticipants:
+                    if teamAssignment[p] == 1:
+                        newTeam.append(p)
+                    else:
+                        leftovers.append(p)
+                newDict = {}
+                newDict[eventName] = newTeam
+                teamTwo[index] = newDict
+            for i in teamThree:
+                newTeam = []
+                index = teamThree.index(i)
+                for key in i.keys():
+                    eventName = key
+                for values in i.values():
+                    eventParticipants = values
+                for p in eventParticipants:
+                    if teamAssignment[p] == 1:
+                        newTeam.append(p)
+                    else:
+                        leftovers.append(p)
+                newDict = {}
+                newDict[eventName] = newTeam
+                teamThree[index] = newDict
+        return [teamOne, teamTwo, teamThree], leftovers
+
+    def getAllParticipants(self, sheet):
+        counter = 2
+        key = "A" + str(counter)
+        names = []
+        while sheet[key].value != None:
+            names.append(sheet[key].value)
+            counter+=1
+            key = "A" + str(counter)
+        return names
 def getFileName():
     print("enter in the name of the .xlsx file that you want to generate groups and teams for")
     userInput = input(".xlsx file with team data: ")
@@ -298,6 +374,6 @@ if sheet:
     algorithm.putInEvent(freshmen, eventList)
     numTeams = algorithm.getNumOfTeams(sheet)
     teams, leftovers = algorithm.putInTeams(sheet, eventList, numTeams)
-    print(teams)
-    print(leftovers)
-    algorithm.separateTeams(teams, leftovers)
+    #print(teams)
+    #print(leftovers)
+    teams, leftovers = algorithm.separateTeams(teams, leftovers, sheet)
