@@ -82,7 +82,6 @@ class Grouping_Algorithm:
             nameKey = "A" + str(nameCounter)
         num = nameCounter - 3
         return math.ceil(num / 15)
-    #handle people who do not get put into an event
     def putInTeams(self, sheet, eventList, numTeams):
         teams = {}
         leftovers = []
@@ -212,8 +211,101 @@ class Grouping_Algorithm:
         return dictionary
     def updateGoogleSheet(self, sheet, teams):
         pass
-    def handleLeftOvers(self, teams, leftovers):
-        pass
+    def handleLeftOvers(self, teams, leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman, teamAssignment, sheet):
+        teamOne = teams[0]
+        teamTwo = teams[1]
+        teamThree = teams[2]
+        for i in leftoverSeniors:
+            if teamAssignment[i] == 1:
+                pass
+            if teamAssignment[i] == 2:
+                pass
+            if teamAssignment[i] == 3:
+                pass
+        for i in leftoverJuniors:
+            counter = 2
+            nameKey = "A" + str(counter)
+            while sheet[nameKey].value != i:
+                counter+=1
+                nameKey = "A" + str(counter)
+            desiredEventsKey = "C" + str(counter)
+            desiredEvents = sheet[desiredEventsKey].value
+            putInEvent = False
+            #get what events the leftover person wants to be in
+            listOfEvents = desiredEvents.split(", ")
+            #if they are one team one . . .
+            if teamAssignment[i] == 1:
+                #for each preferred event
+                for t in listOfEvents:
+                    #loop through the list of dictionaries
+                    if putInEvent == True:
+                        break
+                    for p in teamOne:
+                        index = teamOne.index(p)
+                        if(putInEvent == True):
+                            break
+                        #get the dictionary
+                        for key,value in p.items():
+                            #check to see if the key of the dictionary (event name) matches the desired event
+                            if key == t:
+                                #get the max team size
+                                eventCounter = 2
+                                eventKey = "F" + str(eventCounter)
+                                while sheet[eventKey].value != t:
+                                    eventCounter+=1
+                                    eventKey = "F" + str(eventCounter)
+                                numKey = "J" + str(eventCounter)
+                                maxTeamSize = sheet[numKey].value
+                                currentParticipants = value
+                                if maxTeamSize != len(currentParticipants):
+                                    #there is an opening on the team so the leftover person should be added to the team
+                                    currentParticipants.append(i)
+                                    newTeam = {key:currentParticipants}
+                                    teamOne[index] = newTeam
+                                    putInEvent = True
+                            if putInEvent == True:
+                                break
+                if putInEvent == False:
+                    print("put in random event")
+                    for z in teamOne:
+                        index = teamOne.index(z)
+                        if putInEvent == True:
+                            break
+                        for key,value in z.items():
+                            eventCounter = 2
+                            eventKey = "F" + str(eventCounter)
+                            while sheet[eventKey].value != key:
+                                eventCounter+=1
+                                eventKey = "F" + str(eventCounter)
+                            numKey = "J" + str(eventCounter)
+                            maxTeamSize = sheet[numKey].value
+                            currentTeam = value
+                            if maxTeamSize != len(value):
+                                currentTeam.append(i)
+                                newTeam = {key:currentTeam}
+                                teamOne[index] = newTeam
+                                putInEvent = True
+                            if putInEvent == True:
+                                break
+            if teamAssignment[i] == 2:
+                pass
+            if teamAssignment[i] == 3:
+                pass
+        for i in leftoverSophomores:
+            if teamAssignment[i] == 1:
+                pass
+            if teamAssignment[i] == 2:
+                pass
+            if teamAssignment[i] == 3:
+                pass
+        for i in leftoverFreshman:
+            if teamAssignment[i] == 1:
+                pass
+            if teamAssignment[i] == 2:
+                pass
+            if teamAssignment[i] == 3:
+                pass
+        return [teamOne, teamTwo, teamThree]
     def separateTeams(self, teams, leftovers, sheet):
         teamOne = []
         teamTwo = []
@@ -295,7 +387,7 @@ class Grouping_Algorithm:
                 for values in i.values():
                     eventParticipants = values
                 for p in eventParticipants:
-                    if teamAssignment[p] == 1:
+                    if teamAssignment[p] == 2:
                         newTeam.append(p)
                     else:
                         leftovers.append(p)
@@ -310,15 +402,14 @@ class Grouping_Algorithm:
                 for values in i.values():
                     eventParticipants = values
                 for p in eventParticipants:
-                    if teamAssignment[p] == 1:
+                    if teamAssignment[p] == 3:
                         newTeam.append(p)
                     else:
                         leftovers.append(p)
                 newDict = {}
                 newDict[eventName] = newTeam
                 teamThree[index] = newDict
-        return [teamOne, teamTwo, teamThree], leftovers
-
+        return [teamOne, teamTwo, teamThree], leftovers, teamAssignment
     def getAllParticipants(self, sheet):
         counter = 2
         key = "A" + str(counter)
@@ -328,6 +419,29 @@ class Grouping_Algorithm:
             counter+=1
             key = "A" + str(counter)
         return names
+    def sortByYear(self, sheet, leftovers):
+        leftoverSeniors = []
+        leftoverJuniors = []
+        leftoverSophomores = []
+        leftoverFreshman = []
+        for i in leftovers:
+            counter = 2
+            key = "A" + str(counter)
+            while sheet[key].value != None:
+                if sheet[key].value == i:
+                    gradeKey = "D" + str(counter)
+                    grade = sheet[gradeKey].value
+                    if grade == "Sr":
+                        leftoverSeniors.append(i)
+                    if grade == "J":
+                        leftoverJuniors.append(i)
+                    if grade == "S":
+                        leftoverSophomores.append(i)
+                    if grade == "F":
+                        leftoverFreshman.append(i)
+                counter+=1
+                key = "A" + str(counter)
+        return leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman
 def getFileName():
     print("enter in the name of the .xlsx file that you want to generate groups and teams for")
     userInput = input(".xlsx file with team data: ")
@@ -374,6 +488,9 @@ if sheet:
     algorithm.putInEvent(freshmen, eventList)
     numTeams = algorithm.getNumOfTeams(sheet)
     teams, leftovers = algorithm.putInTeams(sheet, eventList, numTeams)
-    #print(teams)
-    #print(leftovers)
-    teams, leftovers = algorithm.separateTeams(teams, leftovers, sheet)
+    teams, leftovers, teamAssignment = algorithm.separateTeams(teams, leftovers, sheet)
+    print(teams)
+    leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman = algorithm.sortByYear(sheet, leftovers)
+    teams = algorithm.handleLeftOvers(teams, leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman, teamAssignment, sheet)
+    print(teams)
+    
