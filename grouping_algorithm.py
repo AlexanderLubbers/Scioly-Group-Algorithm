@@ -68,9 +68,9 @@ class Grouping_Algorithm:
             workbook = load_workbook(filename=file)
         except:
             print("error: could not find file named: " + filename + ".xlsx")
-            return False
+            return False, False, False
         sheet = workbook.active
-        return sheet
+        return sheet, workbook, file
     def getNumOfTeams(self, sheet):
         nameCounter = 1
         nameKey = "A" + str(nameCounter)
@@ -209,8 +209,38 @@ class Grouping_Algorithm:
             counter = counter + 1
             key = "D" + str(counter)
         return dictionary
+    def turnToString(self, listOfPeople):
+        string = ""
+        for i in listOfPeople:
+            string = string + i
+            if i == listOfPeople[-1]:
+                return string
+            string = string + ", "
     def updateGoogleSheet(self, sheet, teams):
-        pass
+        teamOne = teams[0]
+        teamTwo = teams[1]
+        teamThree = teams[2]
+        counter = 2
+        keyOne = "G" + str(counter)
+        for i in teamOne:
+            for value in i.values():
+                sheet[keyOne].value = self.turnToString(value)
+            counter+=1
+            keyOne = "G" + str(counter)
+        counter = 2
+        keyTwo = "H" + str(counter)
+        for i in teamTwo:
+            for value in i.values():
+                sheet[keyTwo].value = self.turnToString(value)
+            counter+=1
+            keyTwo = "H" + str(counter)
+        counter = 2
+        keyThree = "I" + str(counter)
+        for i in teamThree:
+            for value in i.values():
+                sheet[keyThree].value = self.turnToString(value)
+            counter+=1
+            keyThree = "H" + str(counter)
     def putLeftOverInEvent(self, team, listOfEvents, name):
         putInEvent = False
         for i in listOfEvents:
@@ -504,7 +534,7 @@ def setupEventList(sheet):
 
 filename = getFileName()
 algorithm = Grouping_Algorithm()
-sheet = algorithm.getWorkbook(filename)
+sheet, workbook, xlfile = algorithm.getWorkbook(filename)
 if sheet:
     seniors = algorithm.sortSeniors(sheet=sheet)
     juniors = algorithm.sortJuniors(sheet=sheet)
@@ -522,4 +552,5 @@ if sheet:
     leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman = algorithm.sortByYear(sheet, leftovers)
     teams = algorithm.handleLeftOvers(teams, leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman, teamAssignment, sheet)
     print(teams)
-    
+    algorithm.updateGoogleSheet(sheet, teams)
+    workbook.save(xlfile)
