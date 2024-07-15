@@ -53,7 +53,7 @@ class Grouping_Algorithm:
     def addToTeamDict(self, team, teams, eventName):
         if eventName in teams:
             iterate = True
-            counter = 1
+            counter = 2
             while iterate == True:
                 if (eventName + str(counter)) not in teams:
                     iterate = False
@@ -101,7 +101,9 @@ class Grouping_Algorithm:
             #handle edge case
             team = []
             if(len(participants) == 0):
-                teams = self.addToTeamDict(team, teams, eventName)
+                while teamsCreated != numTeams:
+                    teams = self.addToTeamDict(team, teams, eventName)
+                    teamsCreated+=1
             else:
                 team.append(participants[0])
                 name = participants[0]
@@ -117,17 +119,22 @@ class Grouping_Algorithm:
                             if len(team) == maxGroupSize:
                                 teamsCreated+=1
                                 teams = self.addToTeamDict(team, teams, eventName)
+                                team = []
                     #no one in the preferred teamate list was participating in the event so
                     #the next person in the participant list should be added as long as they exist
                     #and should be added to create a team
-                    if len(participants) != 0 and numTeams != teamsCreated:
+                    if len(participants) != 0 and numTeams > teamsCreated:
                         team.append(participants[0])
                         participants.remove(participants[0])
                         if len(team) == maxGroupSize:
                             teamsCreated+=1
                             teams = self.addToTeamDict(team, teams, eventName)
+                            team = []
                 if numTeams != teamsCreated:
-                    teams = self.addToTeamDict(team, teams, eventName)
+                    while teamsCreated != numTeams:
+                        teams = self.addToTeamDict(team, teams, eventName)
+                        team = []
+                        teamsCreated+=1
                 if len(participants) > 0:
                     for people in participants:
                         leftovers.append(people)
@@ -241,6 +248,14 @@ class Grouping_Algorithm:
                 sheet[keyThree].value = self.turnToString(value)
             counter+=1
             keyThree = "H" + str(counter)
+    def dictCleanup(self, team):
+        for i in team:
+            index = team.index(i)
+            for key,value in i.items():
+                newKey = ''.join([i for i in key if not i.isdigit()])
+                newDict = {newKey:value}
+                team[index] = newDict
+        return team
     def putLeftOverInEvent(self, team, listOfEvents, name):
         putInEvent = False
         for i in listOfEvents:
@@ -266,33 +281,33 @@ class Grouping_Algorithm:
                         currentParticipants = value
                         if maxTeamSize != len(currentParticipants):
                             #there is an opening on the team so the leftover person should be added to the team
-                            currentParticipants.append(i)
+                            currentParticipants.append(name)
                             newTeam = {key:currentParticipants}
                             team[index] = newTeam
                             putInEvent = True
+                            break
+        #a slot in their desired events was not available so they will be put in a random event
+        if putInEvent == False:
+            for z in team:
+                index = team.index(z)
+                if putInEvent == True:
+                    break
+                for key,value in z.items():
+                    eventCounter = 2
+                    eventKey = "F" + str(eventCounter)
+                    while sheet[eventKey].value != key:
+                        eventCounter+=1
+                        eventKey = "F" + str(eventCounter)
+                    numKey = "J" + str(eventCounter)
+                    maxTeamSize = sheet[numKey].value
+                    currentTeam = value
+                    if maxTeamSize != len(value):
+                        currentTeam.append(name)
+                        newTeam = {key:currentTeam}
+                        team[index] = newTeam
+                        putInEvent = True
                     if putInEvent == True:
                         break
-                if putInEvent == False:
-                    for z in team:
-                        index = team.index(z)
-                        if putInEvent == True:
-                            break
-                        for key,value in z.items():
-                            eventCounter = 2
-                            eventKey = "F" + str(eventCounter)
-                            while sheet[eventKey].value != key:
-                                eventCounter+=1
-                                eventKey = "F" + str(eventCounter)
-                            numKey = "J" + str(eventCounter)
-                            maxTeamSize = sheet[numKey].value
-                            currentTeam = value
-                            if maxTeamSize != len(value):
-                                currentTeam.append(name)
-                                newTeam = {key:currentTeam}
-                                team[index] = newTeam
-                                putInEvent = True
-                            if putInEvent == True:
-                                break
     def handleLeftOvers(self, teams, leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman, teamAssignment, sheet):
         teamOne = teams[0]
         teamTwo = teams[1]
@@ -549,8 +564,14 @@ if sheet:
     numTeams = algorithm.getNumOfTeams(sheet)
     teams, leftovers = algorithm.putInTeams(sheet, eventList, numTeams)
     teams, leftovers, teamAssignment = algorithm.separateTeams(teams, leftovers, sheet)
+    teams[1] = algorithm.dictCleanup(teams[1])
+    teams[2] = algorithm.dictCleanup(teams[2])
     leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman = algorithm.sortByYear(sheet, leftovers)
+    print(teams[0])
+    print(teams[1])
+    print("     ")
     teams = algorithm.handleLeftOvers(teams, leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman, teamAssignment, sheet)
-    print(teams)
-    algorithm.updateGoogleSheet(sheet, teams)
-    workbook.save(xlfile)
+    print(teams[0])
+    print(teams[1])
+    # algorithm.updateGoogleSheet(sheet, teams)
+    # workbook.save(xlfile)
