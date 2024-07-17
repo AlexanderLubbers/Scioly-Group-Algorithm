@@ -279,7 +279,7 @@ class Grouping_Algorithm:
                         numKey = "J" + str(eventCounter)
                         maxTeamSize = sheet[numKey].value
                         currentParticipants = value
-                        if maxTeamSize != len(currentParticipants):
+                        if maxTeamSize != len(currentParticipants) and name not in currentParticipants:
                             #there is an opening on the team so the leftover person should be added to the team
                             currentParticipants.append(name)
                             newTeam = {key:currentParticipants}
@@ -324,9 +324,9 @@ class Grouping_Algorithm:
             listOfEvents = desiredEvents.split(", ")
             if teamAssignment[i] == 1:
                 team = teamOne
-            if teamAssignment[i] == 2:
+            elif teamAssignment[i] == 2:
                 team = teamTwo
-            if teamAssignment[i] == 3:
+            elif teamAssignment[i] == 3:
                 team = teamThree
             self.putLeftOverInEvent(team, listOfEvents, i)
         for i in leftoverJuniors:
@@ -568,5 +568,8 @@ if sheet:
     teams[2] = algorithm.dictCleanup(teams[2])
     leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman = algorithm.sortByYear(sheet, leftovers)
     teams = algorithm.handleLeftOvers(teams, leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman, teamAssignment, sheet)
+    print(teams[0])
+    print("      ")
+    print(teams[1])
     algorithm.updateGoogleSheet(sheet, teams)
     workbook.save(xlfile)
