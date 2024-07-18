@@ -381,6 +381,22 @@ class Grouping_Algorithm:
                 team = teamThree
             self.putLeftOverInEvent(team, listOfEvents, i)
         return [teamOne, teamTwo, teamThree]
+    def getSeniorList(self, sheet):
+        dictionary = {}
+        counter = 2
+        nameKey = "A" + str(counter)
+        gradeKey = "D" + str(counter)
+        while sheet[nameKey].value != None:
+            senior = None
+            if sheet[gradeKey].value == "Sr":
+                senior = True
+            else:
+                senior = False
+            dictionary[sheet[nameKey].value] = senior
+            counter+=1
+            nameKey = "A" + str(counter)
+            gradeKey = "D" + str(counter)
+        return dictionary
     def separateTeams(self, teams, leftovers, sheet):
         teamOne = []
         teamTwo = []
@@ -429,16 +445,37 @@ class Grouping_Algorithm:
                     nameCountThree[i] = 0
                 counter = 0
             teamAssignment = {}
+            seniorList = self.getSeniorList(sheet)
+            teamCounts = {1: 0, 2: 0, 3: 0}
+            seniorCounts = {1: 0, 2: 0, 3: 0}
             for i in names:
                 x = nameCountOne[i]
                 y = nameCountTwo[i]
                 z = nameCountThree[i]
                 if max(x,y,z) == x:
-                    teamAssignment[i] = 1
-                if max(x,y,z) == y:
-                    teamAssignment[i] = 2
-                if max(x,y,z) == z:
-                    teamAssignment[i] = 3
+                    preferredTeam = 1
+                elif max(x,y,z) == y:
+                    preferredTeam = 2
+                elif max(x,y,z) == z:
+                    preferredTeam = 3
+                
+                #check to make sure tha thte preferred team is not full and does not have more than 7 seniors
+                if teamCounts[preferredTeam] < 15 and (not seniorList[i] or (seniorList[i] and seniorCounts[preferredTeam] < 7)):
+                    teamAssignment[i] = preferredTeam
+                    teamCounts[preferredTeam] += 1
+                    # Update senior count if applicable
+                    if seniorList[i]:
+                        seniorCounts[preferredTeam] += 1
+                else:
+                    for team in [1,2,3]:
+                        if teamCounts[team] < 15 and (not seniorList[i] or (seniorList[i] and seniorCounts[team] < 7)):
+                            teamAssignment[i] = team
+                            teamCounts[team] += 1
+                            if seniorList[i]:
+                                seniorCounts[team] += 1
+                            break
+                    else:
+                        print(f"Could not assign {i} to any team")
             for i in teamOne:
                 newTeam = []
                 index = teamOne.index(i)
@@ -564,6 +601,7 @@ if sheet:
     numTeams = algorithm.getNumOfTeams(sheet)
     teams, leftovers = algorithm.putInTeams(sheet, eventList, numTeams)
     teams, leftovers, teamAssignment = algorithm.separateTeams(teams, leftovers, sheet)
+    print(teamAssignment)
     teams[1] = algorithm.dictCleanup(teams[1])
     teams[2] = algorithm.dictCleanup(teams[2])
     leftoverSeniors, leftoverJuniors, leftoverSophomores, leftoverFreshman = algorithm.sortByYear(sheet, leftovers)
